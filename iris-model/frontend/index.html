@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iris Classification - MLOps Pipeline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .result-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .result-prediction {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+            text-transform: capitalize;
+        }
+
+        .result-confidence {
+            font-size: 1.2em;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .result-model {
+            font-size: 0.9em;
+            color: #888;
+            margin-top: 15px;
+        }
+
+        .status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            text-align: center;
+        }
+
+        .status-item .label {
+            font-size: 0.8em;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .status-item .value {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .status-dot.green {
+            background: #4caf50;
+        }
+
+        .status-dot.red {
+            background: #f44336;
+        }
+
+        .links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .link-btn {
+            padding: 15px;
+            text-align: center;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #333;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .link-btn:hover {
+            background: #e9ecef;
+        }
+
+        .link-btn span {
+            display: block;
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .flower-icons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .flower-icon {
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .setosa { background: #e3f2fd; color: #1565c0; }
+        .versicolor { background: #f3e5f5; color: #7b1fa2; }
+        .virginica { background: #e8f5e9; color: #2e7d32; }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .links {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌸 Iris Classification</h1>
+            <p>MLOps Pipeline Demo - Predict Iris Flower Species</p>
+        </header>
+
+        <!-- Status Card -->
+        <div class="card">
+            <div class="status">
+                <div class="status-item">
+                    <div class="label">API Status</div>
+                    <div class="value" id="api-status">
+                        <span class="status-dot" id="status-dot"></span>
+                        <span id="status-text">Checking...</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="label">Model</div>
+                    <div class="value" id="model-name">Loading...</div>
+                </div>
+                <div class="status-item">
+                    <div class="label">Accuracy</div>
+                    <div class="value" id="model-accuracy">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prediction Form -->
+        <div class="card">
+            <h2>🔬 Make Prediction</h2>
+            <form id="prediction-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sepal_length">Sepal Length (cm)</label>
+                        <input type="number" id="sepal_length" step="0.1" value="5.1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sepal_width">Sepal Width (cm)</label>
+                        <input type="number" id="sepal_width" step="0.1" value="3.5" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="petal_length">Petal Length (cm)</label>
+                        <input type="number" id="petal_length" step="0.1" value="1.4" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="petal_width">Petal Width (cm)</label>
+                        <input type="number" id="petal_width" step="0.1" value="0.2" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" id="predict-btn">
+                    🔮 Predict Species
+                </button>
+            </form>
+        </div>
+
+        <!-- Result Card -->
+        <div class="card hidden" id="result-card">
+            <h2>📊 Prediction Result</h2>
+            <div class="result">
+                <div class="result-icon" id="result-icon">🌸</div>
+                <div class="result-prediction" id="result-prediction">-</div>
+                <div class="result-confidence" id="result-confidence">-</div>
+                <div class="result-model" id="result-model">-</div>
+                <div class="flower-icons">
+                    <span class="flower-icon setosa">Setosa</span>
+                    <span class="flower-icon versicolor">Versicolor</span>
+                    <span class="flower-icon virginica">Virginica</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Card -->
+        <div class="card hidden" id="error-card">
+            <div class="error" id="error-message"></div>
+        </div>
+
+        <!-- Links Card -->
+        <div class="card">
+            <h2>🔗 Quick Links</h2>
+            <div class="links">
+                <a href="http://localhost:5000" target="_blank" class="link-btn">
+                    📈 MLflow
+                    <span>Experiments</span>
+                </a>
+                <a href="http://localhost:8080" target="_blank" class="link-btn">
+                    🔄 Airflow
+                    <span>Pipelines</span>
+                </a>
+                <a href="http://localhost:8000/docs" target="_blank" class="link-btn">
+                    📚 API Docs
+                    <span>Swagger</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+
+        // Check API health on load
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                
+                document.getElementById('status-dot').className = 'status-dot green';
+                document.getElementById('status-text').textContent = 'Online';
+                
+                if (data.model_loaded) {
+                    await loadModelInfo();
+                } else {
+                    document.getElementById('model-name').textContent = 'Not loaded';
+                    document.getElementById('model-accuracy').textContent = '-';
+                }
+            } catch (error) {
+                document.getElementById('status-dot').className = 'status-dot red';
+                document.getElementById('status-text').textContent = 'Offline';
+                document.getElementById('model-name').textContent = '-';
+            }
+        }
+
+        // Load model info
+        async function loadModelInfo() {
+            try {
+                const response = await fetch(`${API_URL}/model-info`);
+                const data = await response.json();
+                
+                document.getElementById('model-name').textContent = data.name;
+                document.getElementById('model-accuracy').textContent = 
+                    (data.accuracy * 100).toFixed(1) + '%';
+            } catch (error) {
+                console.error('Error loading model info:', error);
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('prediction-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('predict-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Predicting...';
+            
+            const inputData = {
+                sepal_length: parseFloat(document.getElementById('sepal_length').value),
+                sepal_width: parseFloat(document.getElementById('sepal_width').value),
+                petal_length: parseFloat(document.getElementById('petal_length').value),
+                petal_width: parseFloat(document.getElementById('petal_width').value)
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(inputData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Prediction failed');
+                }
+                
+                const result = await response.json();
+                
+                // Show result
+                document.getElementById('result-card').classList.remove('hidden');
+                document.getElementById('error-card').classList.add('hidden');
+                
+                // Set icon based on prediction
+                const icons = {
+                    'setosa': '🌸',
+                    'versicolor': '🌺',
+                    'virginica': '🌷'
+                };
+                
+                document.getElementById('result-icon').textContent = icons[result.prediction] || '🌼';
+                document.getElementById('result-prediction').textContent = result.prediction;
+                document.getElementById('result-confidence').textContent = 
+                    `Confidence: ${(result.confidence * 100).toFixed(1)}%`;
+                document.getElementById('result-model').textContent = 
+                    `Model: ${result.model_name} (${(result.model_accuracy * 100).toFixed(1)}% accuracy)`;
+                
+            } catch (error) {
+                document.getElementById('result-card').classList.add('hidden');
+                document.getElementById('error-card').classList.remove('hidden');
+                document.getElementById('error-message').textContent = 
+                    'Error: ' + error.message + '. Make sure to run the training pipeline first!';
+            }
+            
+            btn.disabled = false;
+            btn.textContent = '🔮 Predict Species';
+        });
+
+        // Check health on page load
+        checkHealth();
+        
+        // Refresh status every 30 seconds
+        setInterval(checkHealth, 30000);
+    </script>
+</body>
+</html>

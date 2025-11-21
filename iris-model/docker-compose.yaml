@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  mlflow:
+    build:
+      context: ./mlflow
+      dockerfile: Dockerfile
+    container_name: mlflow
+    ports:
+      - "5000:5000"
+
+  airflow:
+    build:
+      context: ./airflow
+      dockerfile: Dockerfile
+    container_name: airflow
+    user: "0:0" 
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./models:/opt/airflow/models
+      - ./data:/opt/airflow/data
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    depends_on:
+      - mlflow
+    command: airflow standalone
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    depends_on:
+      - mlflow
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
